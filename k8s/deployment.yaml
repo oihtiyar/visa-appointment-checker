@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visa-app-checker
+  labels:
+    app: visa-app-checker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: visa-app-checker
+  template:
+    metadata:
+      labels:
+        app: visa-app-checker
+    spec:
+      containers:
+      - name: visa-app-checker
+        image: gcr.io/visaapp-447008/visa-app-checker:v1
+        ports:
+        - containerPort: 80
+

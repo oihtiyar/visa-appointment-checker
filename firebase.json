@@ -1,0 +1,6 @@
+{
+  "hosting": {
+    "public": "build",  // React projeniz build dizinine çıkacak
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}

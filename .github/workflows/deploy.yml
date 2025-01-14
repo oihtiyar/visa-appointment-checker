@@ -22,30 +22,6 @@ jobs:
       uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: visaapp-447008
-        export_default_credentials: true
-
-    - name: Check if GKE Cluster exists
-      id: cluster_check
-      run: |
-        if gcloud container clusters describe visa-app-cluster --region us-central1 > /dev/null 2>&1; then
-          echo "Cluster exists"
-          echo "exists=true" >> $GITHUB_ENV
-        else
-          echo "Cluster does not exist"
-          echo "exists=false" >> $GITHUB_ENV
-        fi
-
-    - name: Create GKE Cluster if not exists
-      if: env.exists == 'false'
-      run: |
-        gcloud container clusters create visa-app-cluster \
-          --region us-central1 \
-          --num-nodes 2 \
-          --quiet
-
-    - name: Configure kubectl for GKE
-      run: |
-        gcloud container clusters get-credentials visa-app-cluster --region us-central1
 
     - name: Authenticate Docker
       run: gcloud auth configure-docker
@@ -53,6 +29,19 @@ jobs:
     - name: Build and Push Docker Image
       run: |
         docker buildx build --platform linux/amd64 --tag gcr.io/visaapp-447008/visa-app-checker:v1 --push .
+
+    # Eğer daha önce cluster yoksa, oluşturulacaksa burada cluster oluşturulabilir:
+    - name: Create GKE Cluster (if needed)
+      run: |
+        gcloud container clusters create visa-app-cluster \
+          --disk-size=100GB \
+          --zone us-central1-a \
+          --num-nodes=3  # Burada ihtiyacınıza göre node sayısını ve disk boyutunu değiştirebilirsiniz.
+
+    - name: Configure kubectl
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
 
     - name: Deploy to GKE
       run: |

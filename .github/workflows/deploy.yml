@@ -30,6 +30,9 @@ jobs:
       run: |
         docker buildx build --platform linux/amd64 --tag gcr.io/visaapp-447008/visa-app-checker:v1 --push .
 
+    - name: Configure kubectl
+      run: echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
+
     - name: Deploy to GKE
       run: |
         kubectl apply -f k8s/deployment.yaml --validate=false

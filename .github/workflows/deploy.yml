@@ -23,23 +23,32 @@ jobs:
       with:
         project_id: visaapp-447008
 
-    - name: Create Kubernetes Cluster
+    - name: Install gke-gcloud-auth-plugin
       run: |
-        gcloud container clusters create visa-app-cluster \
-          --zone us-central1-a \
-          --num-nodes 3 \
-          --enable-autoscaling --min-nodes 1 --max-nodes 5 \
-          --project visaapp-447008
-          
-    - name: Get Kubeconfig and Set as Secret
+        sudo apt-get update && sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+
+    - name: Check if Cluster Exists and Connect
       run: |
-        KUBECONFIG_CONTENT=$(gcloud container clusters get-credentials visa-app-cluster --zone us-central1-a --project visaapp-447008 --format json | jq -r .kubeconfig)
-        echo "KUBECONFIG_CONTENT=${KUBECONFIG_CONTENT}" >> $GITHUB_ENV
+        if gcloud container clusters describe visa-app-cluster --zone us-central1-a --project visaapp-447008 > /dev/null 2>&1; then
+          echo "Cluster already exists. Connecting..."
+        else
+          echo "Cluster does not exist. Creating a new one..."
+          gcloud container clusters create visa-app-cluster \
+            --zone us-central1-a \
+            --num-nodes 3 \
+            --enable-autoscaling --min-nodes 1 --max-nodes 5 \
+            --project visaapp-447008
+        fi
+
+    - name: Get Cluster Credentials
+      run: |
+        gcloud container clusters get-credentials visa-app-cluster --zone us-central1-a --project visaapp-447008
 
     - name: Configure kubectl
       run: |
         mkdir -p ~/.kube
-        echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
+        gcloud container clusters get-credentials visa-app-cluster --zone us-central1-a --project visaapp-447008
+        echo "Kubeconfig updated"
 
     - name: Authenticate Docker
       run: gcloud auth configure-docker

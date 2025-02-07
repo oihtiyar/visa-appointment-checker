@@ -23,9 +23,11 @@ jobs:
       with:
         project_id: visaapp-447008
 
+    # ✅ GKE auth plugin yükleme - Doğru yöntem
     - name: Install gke-gcloud-auth-plugin
       run: |
-        sudo apt-get update && sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+        gcloud components install gke-gcloud-auth-plugin
+        echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
 
     - name: Check if Cluster Exists and Connect
       run: |
